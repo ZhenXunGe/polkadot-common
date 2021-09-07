@@ -7,7 +7,7 @@ import type { KeyringPair, KeyringPair$Json, KeyringPair$Meta, SignOptions } fro
 import type { PairInfo } from './types';
 
 import { assert, u8aConcat, u8aEq, u8aToHex, u8aToU8a } from '@polkadot/util';
-import { blake2AsU8a, convertPublicKeyToCurve25519, convertSecretKeyToCurve25519, ethereumEncode, keccakAsU8a, keyExtractPath, keyFromPath, naclKeypairFromSeed as naclFromSeed, naclOpen, naclSeal, naclSign, schnorrkelKeypairFromSeed as schnorrkelFromSeed, schnorrkelSign, schnorrkelVrfSign, schnorrkelVrfVerify, secp256k1Compress, secp256k1Expand, secp256k1KeypairFromSeed as secp256k1FromSeed, secp256k1Sign, signatureVerify } from '@polkadot/util-crypto';
+import { blake2AsU8a, convertPublicKeyToCurve25519, convertSecretKeyToCurve25519, ethereumEncode, keccakAsU8a, keyExtractPath, keyFromPath, naclKeypairFromSeed as naclFromSeed, naclOpen, naclSeal, naclSign, schnorrkelKeypairFromSeed as schnorrkelFromSeed, schnorrkelSign, babyjubjubSign, schnorrkelVrfSign, schnorrkelVrfVerify, secp256k1Compress, secp256k1Expand, secp256k1KeypairFromSeed as secp256k1FromSeed, babyjubjubKeypairFromSeed as babyjubjubFromSeed, secp256k1Sign, signatureVerify } from '@polkadot/util-crypto';
 
 import { decodePair } from './decode';
 import { encodePair } from './encode';
@@ -24,28 +24,34 @@ const TYPE_FROM_SEED = {
   ecdsa: secp256k1FromSeed,
   ed25519: naclFromSeed,
   ethereum: secp256k1FromSeed,
-  sr25519: schnorrkelFromSeed
+  sr25519: schnorrkelFromSeed,
+  babyjubjub: babyjubjubFromSeed,
 };
 
 const TYPE_PREFIX = {
   ecdsa: new Uint8Array([2]),
   ed25519: new Uint8Array([0]),
   ethereum: new Uint8Array([2]),
-  sr25519: new Uint8Array([1])
+  sr25519: new Uint8Array([1]),
+  // FIXME: What's this
+  babyjubjub: new Uint8Array([0]),
 };
 
 const TYPE_SIGNATURE = {
   ecdsa: (m: Uint8Array, p: Partial<Keypair>) => secp256k1Sign(m, p, 'blake2'),
   ed25519: naclSign,
   ethereum: (m: Uint8Array, p: Partial<Keypair>) => secp256k1Sign(m, p, 'keccak'),
-  sr25519: schnorrkelSign
+  sr25519: schnorrkelSign,
+  babyjubjub: babyjubjubSign,
 };
 
 const TYPE_ADDRESS = {
   ecdsa: (p: Uint8Array) => p.length > 32 ? blake2AsU8a(p) : p,
   ed25519: (p: Uint8Array) => p,
   ethereum: (p: Uint8Array) => p.length === 20 ? p : keccakAsU8a(secp256k1Expand(p)),
-  sr25519: (p: Uint8Array) => p
+  sr25519: (p: Uint8Array) => p,
+  // FIXME: what's this?
+  babyjubjub: (p: Uint8Array) => p,
 };
 
 // Not 100% correct, since it can be a Uint8Array, but an invalid one - just say "undefined" is anything non-valid

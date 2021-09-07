@@ -14,6 +14,94 @@ describe('keypair', (): void => {
     await cryptoWaitReady();
   });
 
+  describe('babyjubjub', (): void => {
+    const publicKeyOne = new Uint8Array([47, 140, 97, 41, 216, 22, 207, 81, 195, 116, 188, 127, 8, 195, 230, 62, 209, 86, 207, 120, 174, 251, 74, 101, 80, 217, 123, 135, 153, 121, 119, 238]);
+    const publicKeyTwo = new Uint8Array([215, 90, 152, 1, 130, 177, 10, 183, 213, 75, 254, 211, 201, 100, 7, 58, 14, 225, 114, 243, 218, 166, 35, 37, 175, 2, 26, 104, 247, 7, 81, 26]);
+    const seedOne = stringToU8a('12345678901234567890123456789012');
+    const seedTwo = hexToU8a('0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60');
+    let keyring: Keyring;
+
+    beforeEach((): void => {
+      keyring = new Keyring({ ss58Format: 42, type: 'babyjubjub' });
+
+      keyring.addFromSeed(seedOne, {});
+    });
+
+    it('adds the pair', (): void => {
+      expect(
+        keyring.addFromSeed(seedTwo, {}).publicKey
+      ).toEqual(publicKeyTwo);
+    });
+
+    it('creates via a dev seed', (): void => {
+      expect(
+        keyring.addFromUri('//Alice').address
+      ).toEqual('5FA9nQDVg267DEd8m1ZypXLBnvN7SFxYwV7ndqSYGiN9TTpu');
+    });
+
+    it('creates a ed25519 pair via mnemonicToSeed', (): void => {
+      expect(
+        keyring.addFromUri(
+          'seed sock milk update focus rotate barely fade car face mechanic mercy'
+        ).address
+      ).toEqual('5DkQP32jP4DVJLWWBRBoZF2tpWjqFrcrTBo6H5NcSk7MxKCC');
+    });
+
+    it('adds from a mnemonic, with correct ss58', (): void => {
+      setSS58Format(20); // this would not be used
+      keyring.setSS58Format(2); // this would be used
+
+      const pair = keyring.addFromMnemonic('moral movie very draw assault whisper awful rebuild speed purity repeat card', {});
+
+      expect(pair.address).toEqual('HSLu2eci2GCfWkRimjjdTXKoFSDL3rBv5Ey2JWCBj68cVZj');
+      expect(encodeAddress(pair.publicKey)).toEqual('35cDYtPsdG1HUa2n2MaARgJyRz1WKMBZK1DL6c5cX7nugQh1');
+    });
+
+    it('allows publicKeys retrieval', (): void => {
+      keyring.addFromSeed(seedTwo, {});
+
+      expect(
+        keyring.getPublicKeys()
+      ).toEqual([publicKeyOne, publicKeyTwo]);
+    });
+
+    it('allows retrieval of a specific item', (): void => {
+      expect(
+        keyring.getPair(publicKeyOne).publicKey
+      ).toEqual(publicKeyOne);
+    });
+
+    it('allows adding from JSON', (): void => {
+      expect(
+        keyring.addFromJson(
+          JSON.parse('{"address":"5GoKvZWG5ZPYL1WUovuHW3zJBWBP5eT8CbqjdRY4Q6iMaQua","encoded":"0xb4a14995d25ab609f3686e9fa45f1fb237cd833f33f00d4b12c51858ca070d96972e47d73aae5eeb0fc06f923826cf0943fdb02c2c2ee30ef52a7912663053940d1da4da66b3a3f520ae07422c1c94b2d95690fca9d1f4a997623bb2923a8833280e19e7f72c3c5cfa343974e60e2b3dc53b404fdaf330756daad5e4e3","encoding":{"content":"pkcs8","type":"xsalsa20-poly1305","version":"0"},"meta":{"isTesting":true,"name":"alice"}}')
+        ).publicKey
+      ).toEqual(
+        new Uint8Array([209, 114, 167, 76, 218, 76, 134, 89, 18, 195, 43, 160, 168, 10, 87, 174, 105, 171, 174, 65, 14, 92, 203, 89, 222, 232, 78, 47, 68, 50, 219, 79])
+      );
+    });
+
+    it('signs and verifies', (): void => {
+      const MESSAGE = stringToU8a('this is a message');
+      const pair = keyring.getPair(publicKeyOne);
+      const signature = pair.sign(MESSAGE);
+
+      expect(pair.verify(MESSAGE, signature, pair.publicKey)).toBe(true);
+      expect(pair.verify(MESSAGE, signature, randomAsU8a())).toBe(false);
+      expect(pair.verify(new Uint8Array(), signature, pair.publicKey)).toBe(false);
+    });
+
+    it('signs and verifies (withType)', (): void => {
+      const MESSAGE = stringToU8a('this is a message');
+      const pair = keyring.getPair(publicKeyOne);
+      const signature = pair.sign(MESSAGE, { withType: true });
+
+      expect(pair.verify(MESSAGE, signature, pair.publicKey)).toBe(true);
+      expect(pair.verify(MESSAGE, signature, randomAsU8a())).toBe(false);
+      expect(pair.verify(new Uint8Array(), signature, pair.publicKey)).toBe(false);
+    });
+  });
+
   describe('ed25519', (): void => {
     const publicKeyOne = new Uint8Array([47, 140, 97, 41, 216, 22, 207, 81, 195, 116, 188, 127, 8, 195, 230, 62, 209, 86, 207, 120, 174, 251, 74, 101, 80, 217, 123, 135, 153, 121, 119, 238]);
     const publicKeyTwo = new Uint8Array([215, 90, 152, 1, 130, 177, 10, 183, 213, 75, 254, 211, 201, 100, 7, 58, 14, 225, 114, 243, 218, 166, 35, 37, 175, 2, 26, 104, 247, 7, 81, 26]);

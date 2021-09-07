@@ -7,6 +7,7 @@ export { packageInfo } from './packageInfo';
 
 // all internal exports
 export * from './address';
+export * from './babyjubjub';
 export * from './base32';
 export * from './base58';
 export * from './base64';

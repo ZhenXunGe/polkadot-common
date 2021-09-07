@@ -6,7 +6,7 @@ import type { Keypair, KeypairType } from '@polkadot/util-crypto/types';
 import type { KeyringInstance, KeyringOptions, KeyringPair, KeyringPair$Json, KeyringPair$Meta } from './types';
 
 import { assert, hexToU8a, isHex, isUndefined, stringToU8a } from '@polkadot/util';
-import { base64Decode, decodeAddress, encodeAddress, ethereumEncode, hdEthereum, keyExtractSuri, keyFromPath, mnemonicToLegacySeed, mnemonicToMiniSecret, naclKeypairFromSeed as naclFromSeed, schnorrkelKeypairFromSeed as schnorrkelFromSeed, secp256k1KeypairFromSeed as secp256k1FromSeed } from '@polkadot/util-crypto';
+import { base64Decode, decodeAddress, encodeAddress, ethereumEncode, hdEthereum, keyExtractSuri, keyFromPath, mnemonicToLegacySeed, mnemonicToMiniSecret, naclKeypairFromSeed as naclFromSeed, schnorrkelKeypairFromSeed as schnorrkelFromSeed, secp256k1KeypairFromSeed as secp256k1FromSeed, babyjubjubKeypairFromSeed as babyjubjubFromSeed } from '@polkadot/util-crypto';
 
 import { DEV_PHRASE } from './defaults';
 import { createPair } from './pair';
@@ -16,7 +16,8 @@ const keypairFromSeed = {
   ecdsa: (seed: Uint8Array): Keypair => secp256k1FromSeed(seed),
   ed25519: (seed: Uint8Array): Keypair => naclFromSeed(seed),
   ethereum: (seed: Uint8Array): Keypair => secp256k1FromSeed(seed),
-  sr25519: (seed: Uint8Array): Keypair => schnorrkelFromSeed(seed)
+  sr25519: (seed: Uint8Array): Keypair => schnorrkelFromSeed(seed),
+  babyjubjub: (seed: Uint8Array): Keypair => babyjubjubFromSeed(seed)
 };
 
 /**
@@ -47,7 +48,7 @@ export class Keyring implements KeyringInstance {
   constructor (options: KeyringOptions = {}) {
     options.type = options.type || 'ed25519';
 
-    assert(['ecdsa', 'ethereum', 'ed25519', 'sr25519'].includes(options.type || 'undefined'), () => `Expected a keyring type of either 'ed25519', 'sr25519', 'ethereum' or 'ecdsa', found '${options.type || 'unknown'}`);
+    assert(['ecdsa', 'ethereum', 'ed25519', 'sr25519', 'babyjubjub'].includes(options.type || 'undefined'), () => `Expected a keyring type of either 'ed25519', 'sr25519', 'babyjubjub', 'ethereum' or 'ecdsa', found '${options.type || 'unknown'}`);
 
     this.#pairs = new Pairs();
     this.#ss58 = options.ss58Format;
@@ -168,7 +169,7 @@ export class Keyring implements KeyringInstance {
       ? [type]
       : type;
 
-    assert(['ed25519', 'sr25519', 'ecdsa', 'ethereum'].includes(cryptoType), () => `Unknown crypto type ${cryptoType}`);
+    assert(['ed25519', 'sr25519', 'ecdsa', 'ethereum', 'babyjubjub'].includes(cryptoType), () => `Unknown crypto type ${cryptoType}`);
 
     // Here the address and publicKey are 32 bytes and isomorphic. This is why the address field needs to be the public key for ethereum type pairs
     const publicKey = isHex(address)

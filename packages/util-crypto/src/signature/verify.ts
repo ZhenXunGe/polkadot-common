@@ -9,6 +9,7 @@ import { decodeAddress } from '../address/decode';
 import { naclVerify } from '../nacl/verify';
 import { schnorrkelVerify } from '../schnorrkel/verify';
 import { secp256k1Verify } from '../secp256k1/verify';
+import { babyjubjubVerify } from '../babyjubjub/verify';
 
 interface VerifyInput {
   message: Uint8Array | string;
@@ -30,6 +31,7 @@ const VERIFIERS_ECDSA: Verifier[] = [
 const VERIFIERS: Verifier[] = [
   ['ed25519', naclVerify],
   ['sr25519', schnorrkelVerify],
+  ['babyjubjub', babyjubjubVerify],
   ...VERIFIERS_ECDSA
 ];
 
