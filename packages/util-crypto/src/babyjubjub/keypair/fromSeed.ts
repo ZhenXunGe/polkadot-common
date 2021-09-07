@@ -3,9 +3,11 @@
 
 import type { Keypair } from '../../types';
 
-import nacl from 'tweetnacl';
+// import nacl from 'tweetnacl';
 
-import { ed25519KeypairFromSeed, isReady } from '@polkadot/wasm-crypto';
+// import { ed25519KeypairFromSeed, isReady } from '@polkadot/wasm-crypto';
+
+import { babyjubjub_keypair_from_seed as babyjubjubKeypairGen  } from 'eddsa';
 
 /**
  * @name naclKeypairFromSeed
@@ -21,16 +23,16 @@ import { ed25519KeypairFromSeed, isReady } from '@polkadot/wasm-crypto';
  * naclKeypairFromSeed(...); // => { secretKey: [...], publicKey: [...] }
  * ```
  */
-export function babyjubjubKeypairFromSeed (seed: Uint8Array, onlyJs = false): Keypair {
+export function babyjubjubKeypairFromSeed (seed: Uint8Array): Keypair {
   // FIXME: Replace me with babyjubjubKeypairFromSeed
-  if (!onlyJs && isReady()) {
-    const full = ed25519KeypairFromSeed(seed);
+//  if (!onlyJs && isReady()) {
+    const full = babyjubjubKeypairGen(seed);
 
     return {
       publicKey: full.slice(32),
       secretKey: full.slice(0, 64)
     };
-  }
+//  }
 
-  return nacl.sign.keyPair.fromSeed(seed);
+//  return nacl.sign.keyPair.fromSeed(seed);
 }
