@@ -29,8 +29,8 @@ export function babyjubjubKeypairFromSeed (seed: Uint8Array): Keypair {
     const full = babyjubjubKeypairGen(seed);
 
     return {
-      publicKey: full.slice(32),
-      secretKey: full.slice(0, 64)
+      publicKey: full.slice(0, 32),
+      secretKey: full.slice(32)
     };
 //  }
 

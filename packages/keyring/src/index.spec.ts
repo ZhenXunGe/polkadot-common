@@ -15,24 +15,38 @@ describe('keypair', (): void => {
   });
 
   describe('babyjubjub', (): void => {
-    const publicKeyOne = new Uint8Array([47, 140, 97, 41, 216, 22, 207, 81, 195, 116, 188, 127, 8, 195, 230, 62, 209, 86, 207, 120, 174, 251, 74, 101, 80, 217, 123, 135, 153, 121, 119, 238]);
-    const publicKeyTwo = new Uint8Array([215, 90, 152, 1, 130, 177, 10, 183, 213, 75, 254, 211, 201, 100, 7, 58, 14, 225, 114, 243, 218, 166, 35, 37, 175, 2, 26, 104, 247, 7, 81, 26]);
+    // const publicKeyOne = new Uint8Array([47, 140, 97, 41, 216, 22, 207, 81, 195, 116, 188, 127, 8, 195, 230, 62, 209, 86, 207, 120, 174, 251, 74, 101, 80, 217, 123, 135, 153, 121, 119, 238]);
+    const publicKeyOne = new Uint8Array([209, 41, 127, 76, 45, 23, 51, 216, 28, 67, 197, 177, 85, 220, 78, 96, 254, 176, 89, 40, 207, 156, 250, 187, 51, 198, 90, 200, 35, 100, 221, 147]);
     const seedOne = stringToU8a('12345678901234567890123456789012');
-    const seedTwo = hexToU8a('0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60');
+//    const seedTwo = hexToU8a('0x9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60');
     let keyring: Keyring;
 
     beforeEach((): void => {
       keyring = new Keyring({ ss58Format: 42, type: 'babyjubjub' });
-
-      keyring.addFromSeed(seedOne, {});
+      keyring.addFromSeed(seedOne, {}).publicKey
     });
 
     it('adds the pair', (): void => {
       expect(
-        keyring.addFromSeed(seedTwo, {}).publicKey
-      ).toEqual(publicKeyTwo);
+        keyring.addFromSeed(seedOne, {}).publicKey
+      ).toEqual(publicKeyOne);
     });
 
+    it('signs and verifies', (): void => {
+      const exptectSignature = new Uint8Array([105, 110, 33, 142, 172, 177, 185, 63, 181, 83, 167, 206, 145, 220, 166, 134, 85, 225, 187, 254, 222, 102, 83, 128, 0, 43, 250, 245, 2, 182, 209, 40, 93, 237, 229, 92, 36, 56, 196, 124, 232, 228, 254, 58, 177, 167, 5, 114, 182, 170, 36, 18, 157, 229, 63, 222, 252, 20, 224, 78, 240, 88, 133, 1]);
+      const MESSAGE = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      const pair = keyring.getPair(publicKeyOne);
+      const signature = pair.sign(MESSAGE);
+      console.log(signature);
+      expect(signature).toEqual(exptectSignature);
+
+      expect(pair.verify(MESSAGE, signature, pair.publicKey)).toBe(true);
+//      expect(pair.verify(MESSAGE, signature, randomAsU8a())).toBe(false);
+//      expect(pair.verify(new Uint8Array(), signature, pair.publicKey)).toBe(false);
+    });
+
+
+/*
     it('creates via a dev seed', (): void => {
       expect(
         keyring.addFromUri('//Alice').address
@@ -100,6 +114,7 @@ describe('keypair', (): void => {
       expect(pair.verify(MESSAGE, signature, randomAsU8a())).toBe(false);
       expect(pair.verify(new Uint8Array(), signature, pair.publicKey)).toBe(false);
     });
+   */
   });
 
   describe('ed25519', (): void => {
